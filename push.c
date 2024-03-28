@@ -1,92 +1,57 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "monty.h"
 
-#define STACK_SIZE 1024
+/**
+ * push_to_stack - Pushes an element onto the stack
+ * @head: Pointer to the head of the stack
+ * @counter: Line number in the Monty bytecode file
+ *
+ * Description: This function adds a new node to the stack with the given
+ * integer value.
+ */
+void push_to_stack(stack_t **head, unsigned int counter)
+{
+	int value, i = 0, negative = 0, invalid = 0;
 
-typedef struct Stack {
-    int items[STACK_SIZE];
-    int top;
-} Stack;
+	if (!bus.arg)
+	{
+		fprintf(stderr, "L%d: usage: push integer\n", counter);
+		fclose(bus.file);
+		free(bus.content);
+		free_stack(*head);
+		exit(EXIT_FAILURE);
+	}
 
-Stack* createStack() {
-    Stack* stack = (Stack*)malloc(sizeof(Stack));
-    if (stack == NULL) {
-        fprintf(stderr, "Error: malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    stack->top = -1;
-    return stack;
-}
+	if (bus.arg[i] == '-')
+	{
+		negative = 1;
+		i++;
+	}
 
-void push(Stack* stack, int value) {
-    if (stack->top == STACK_SIZE - 1) {
-        fprintf(stderr, "Error: stack overflow\n");
-        exit(EXIT_FAILURE);
-    }
-    stack->items[++stack->top] = value;
-}
+	for (; bus.arg[i]; i++)
+	{
+		if (bus.arg[i] < '0' || bus.arg[i] > '9')
+		{
+			invalid = 1;
+			break;
+		}
+	}
 
-int pop(Stack* stack) {
-    if (stack->top == -1) {
-        fprintf(stderr, "Error: stack underflow\n");
-        exit(EXIT_FAILURE);
-    }
-    return stack->items[stack->top--];
-}
+	if (invalid)
+	{
+		fprintf(stderr, "L%d: usage: push integer\n", counter);
+		fclose(bus.file);
+		free(bus.content);
+		free_stack(*head);
+		exit(EXIT_FAILURE);
+	}
 
-void pall(Stack* stack) {
-    int i;
-    for (i = stack->top; i >= 0; i--) {
-        printf("%d\n", stack->items[i]);
-    }
-}
+	value = atoi(bus.arg);
+	if (negative)
+		value *= -1;
 
-int main(int argc, char *argv[]) {
-    // Check if filename is provided
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s file\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    // Open the file
-    FILE *file = fopen(argv[1], "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
-        return EXIT_FAILURE;
-    }
-
-    // Initialize stack
-    Stack* stack = createStack();
-
-    // Read file line by line
-    char line[256];
-    int line_number = 0;
-    while (fgets(line, sizeof(line), file)) {
-        line_number++;
-
-        // Tokenize line
-        char *opcode = strtok(line, " \n");
-        if (opcode != NULL) {
-            // Execute opcode
-            if (strcmp(opcode, "push") == 0) {
-                char *arg = strtok(NULL, " \n");
-                if (arg == NULL) {
-                    fprintf(stderr, "L%d: usage: push integer\n", line_number);
-                    return EXIT_FAILURE;
-                }
-                int value = atoi(arg);
-                push(stack, value);
-            } else if (strcmp(opcode, "pall") == 0) {
-                pall(stack);
-            } else {
-                fprintf(stderr, "L%d: unknown instruction %s\n", line_number, opcode);
-                return EXIT_FAILURE;
-            }
-        }
-    }
-
-    fclose(file);
-    return EXIT_SUCCESS;
+	if (bus.lifo == 0)
+		add_node_to_stack(head, value);
+	else
+		add_node_to_queue(head, value);
 }
 

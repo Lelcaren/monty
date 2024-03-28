@@ -1,93 +1,25 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "monty.h"
 
-#define STACK_SIZE 1024
+/**
+ * pop_stack - Removes the top element from the stack
+ * @head: Pointer to the head of the stack
+ * @counter: Line number in the Monty bytecode file
+ *
+ * Description: This function removes the top element from the stack.
+ */
+void pop_stack(stack_t **head, unsigned int counter)
+{
+	stack_t *temp;
 
-typedef struct Stack {
-    int items[STACK_SIZE];
-    int top;
-} Stack;
-
-Stack* createStack() {
-    Stack* stack = (Stack*)malloc(sizeof(Stack));
-    if (stack == NULL) {
-        fprintf(stderr, "Error: malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    stack->top = -1;
-    return stack;
-}
-
-void push(Stack* stack, int value) {
-    if (stack->top == STACK_SIZE - 1) {
-        fprintf(stderr, "Error: stack overflow\n");
-        exit(EXIT_FAILURE);
-    }
-    stack->items[++stack->top] = value;
-}
-
-int pop(Stack* stack) {
-    if (stack->top == -1) {
-        fprintf(stderr, "Error: can't pop an empty stack\n");
-        exit(EXIT_FAILURE);
-    }
-    return stack->items[stack->top--];
-}
-
-void pall(Stack* stack) {
-    int i;
-    for (i = stack->top; i >= 0; i--) {
-        printf("%d\n", stack->items[i]);
-    }
-}
-
-int main(int argc, char *argv[]) {
-    // Check if filename is provided
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s file\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    // Open the file
-    FILE *file = fopen(argv[1], "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
-        return EXIT_FAILURE;
-    }
-
-    // Initialize stack
-    Stack* stack = createStack();
-
-    // Read file line by line
-    char line[256];
-    int line_number = 0;
-    while (fgets(line, sizeof(line), file)) {
-        line_number++;
-
-        // Tokenize line
-        char *opcode = strtok(line, " \n");
-        if (opcode != NULL) {
-            // Execute opcode
-            if (strcmp(opcode, "push") == 0) {
-                char *arg = strtok(NULL, " \n");
-                if (arg == NULL) {
-                    fprintf(stderr, "L%d: usage: push integer\n", line_number);
-                    return EXIT_FAILURE;
-                }
-                int value = atoi(arg);
-                push(stack, value);
-            } else if (strcmp(opcode, "pop") == 0) {
-                pop(stack);
-            } else if (strcmp(opcode, "pall") == 0) {
-                pall(stack);
-            } else {
-                fprintf(stderr, "L%d: unknown instruction %s\n", line_number, opcode);
-                return EXIT_FAILURE;
-            }
-        }
-    }
-
-    fclose(file);
-    return EXIT_SUCCESS;
+	if (*head == NULL)
+	{
+		fprintf(stderr, "L%d: can't pop an empty stack\n", counter);
+		fclose(bus.file);
+		free(bus.content);
+		free_stack(*head);
+		exit(EXIT_FAILURE);
+	}
+	temp = *head;
+	*head = temp->next;
+	free(temp);
 }

@@ -1,92 +1,23 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "monty.h"
 
-#define STACK_SIZE 1024
-
-typedef struct Stack {
-    int items[STACK_SIZE];
-    int top;
-} Stack;
-
-Stack* createStack() {
-    Stack* stack = (Stack*)malloc(sizeof(Stack));
-    if (stack == NULL) {
-        fprintf(stderr, "Error: malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    stack->top = -1;
-    return stack;
+/**
+ * print_top - Prints the top element of the stack
+ * @head: Pointer to the head of the stack
+ * @counter: Line number in the Monty bytecode file
+ *
+ * Description: This function prints the top element of the stack followed by
+ * a new line.
+ */
+void print_top(stack_t **head, unsigned int counter)
+{
+	if (*head == NULL)
+	{
+		fprintf(stderr, "L%u: can't print top, stack is empty\n", counter);
+		fclose(bus.file);
+		free(bus.content);
+		free_stack(*head);
+		exit(EXIT_FAILURE);
+	}
+	printf("%d\n", (*head)->n);
 }
 
-void push(Stack* stack, int value) {
-    if (stack->top == STACK_SIZE - 1) {
-        fprintf(stderr, "Error: stack overflow\n");
-        exit(EXIT_FAILURE);
-    }
-    stack->items[++stack->top] = value;
-}
-
-int pop(Stack* stack) {
-    if (stack->top == -1) {
-        fprintf(stderr, "Error: stack underflow\n");
-        exit(EXIT_FAILURE);
-    }
-    return stack->items[stack->top--];
-}
-
-void pint(Stack* stack) {
-    if (stack->top == -1) {
-        fprintf(stderr, "Error: can't pint, stack empty\n");
-        exit(EXIT_FAILURE);
-    }
-    printf("%d\n", stack->items[stack->top]);
-}
-
-int main(int argc, char *argv[]) {
-    // Check if filename is provided
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s file\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    // Open the file
-    FILE *file = fopen(argv[1], "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
-        return EXIT_FAILURE;
-    }
-
-    // Initialize stack
-    Stack* stack = createStack();
-
-    // Read file line by line
-    char line[256];
-    int line_number = 0;
-    while (fgets(line, sizeof(line), file)) {
-        line_number++;
-
-        // Tokenize line
-        char *opcode = strtok(line, " \n");
-        if (opcode != NULL) {
-            // Execute opcode
-            if (strcmp(opcode, "push") == 0) {
-                char *arg = strtok(NULL, " \n");
-                if (arg == NULL) {
-                    fprintf(stderr, "L%d: usage: push integer\n", line_number);
-                    return EXIT_FAILURE;
-                }
-                int value = atoi(arg);
-                push(stack, value);
-            } else if (strcmp(opcode, "pint") == 0) {
-                pint(stack);
-            } else {
-                fprintf(stderr, "L%d: unknown instruction %s\n", line_number, opcode);
-                return EXIT_FAILURE;
-            }
-        }
-    }
-
-    fclose(file);
-    return EXIT_SUCCESS;
-}
